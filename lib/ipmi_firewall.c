@@ -899,7 +899,7 @@ static int
 ipmi_firewall_info(struct ipmi_intf * intf, int argc, char ** argv)
 {
 	int ret = 0;
-	struct ipmi_function_params p = {0xe, -1, -1, -1, -1};
+	struct ipmi_function_params p = {0xe, -1, -1, -1, -1, 0};
 	struct bmc_fn_support * bmc_fn_support;
 	unsigned int l, n, c;
 
@@ -1012,7 +1012,7 @@ ipmi_firewall_info(struct ipmi_intf * intf, int argc, char ** argv)
 static int
 ipmi_firewall_enable_disable(struct ipmi_intf * intf, int enable, int argc, char ** argv)
 {
-	struct ipmi_function_params p = {0xe, -1, -1, -1, -1};
+	struct ipmi_function_params p = {0xe, -1, -1, -1, -1, 0};
 	struct bmc_fn_support * bmc_fn_support;
 	int ret;
 	unsigned int l, n, c;
@@ -1103,7 +1103,7 @@ ipmi_firewall_enable_disable(struct ipmi_intf * intf, int enable, int argc, char
 static int
 ipmi_firewall_reset(struct ipmi_intf * intf, int argc, char ** argv)
 {
-	struct ipmi_function_params p = {0xe, -1, -1, -1, -1};
+	struct ipmi_function_params p = {0xe, -1, -1, -1, -1, 0};
 	struct bmc_fn_support * bmc_fn_support;
 	int ret;
 	unsigned int l, n, c;
@@ -1135,8 +1135,8 @@ ipmi_firewall_reset(struct ipmi_intf * intf, int argc, char ** argv)
 
 	for (l=0; l<MAX_LUN; l++) {
 		p.lun = l;
-		for (n=0; n<MAX_NETFN; n+=2) {
-			p.netfn = n;
+		for (n=0; n<MAX_NETFN_PAIR; n++) {
+			p.netfn = n*2;
 			for (c=0; c<MAX_COMMAND; c++) {
 				p.command = c;
 				printf("reset lun %d, netfn %d, command %d, subfn\n", l, n, c);

@@ -1,7 +1,7 @@
 dnl
 dnl autoconf for ipmitool
 dnl
-AC_INIT([ipmitool], [1.8.17])
+AC_INIT([ipmitool], [1.8.18])
 AC_CONFIG_SRCDIR([src/ipmitool.c])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
@@ -56,14 +56,14 @@ dnl
 dnl set default option values
 dnl
 
-xenable_intf_bmc=no
-xenable_intf_imb=yes
-xenable_intf_open=yes
-xenable_intf_usb=yes
-xenable_intf_lipmi=yes
-#xenable_intf_serial=yes
-xenable_intf_dummy=no
 xenable_all_options=yes
+xenable_intf_bmc=no
+xenable_intf_dummy=no
+xenable_intf_imb=yes
+xenable_intf_lipmi=yes
+xenable_intf_open=yes
+#xenable_intf_serial=yes
+xenable_intf_usb=no
 xenable_ipmishell=yes
 
 dnl set some things so we build with GNU tools on Solaris
@@ -88,33 +88,29 @@ solaris*)
 	xenable_intf_imb=no
 	xenable_intf_open=no
 	xenable_intf_lipmi=no
-	xenable_intf_bmc=no
-	xenable_intf_usb=no
 	;;
 *darwin*|aix*)
 	# disable the linux and solaris-specific interfaces
 	xenable_intf_imb=no
 	xenable_intf_open=no
 	xenable_intf_lipmi=no
-	xenable_intf_bmc=no
 	xenable_ipmishell=no
-	xenable_intf_usb=no
 	;;
 *freebsd*)
 	xenable_intf_imb=no
 	xenable_intf_lipmi=no
-	xenable_intf_bmc=no
+	CFLAGS="$CFLAGS -D__BSD_VISIBLE"
 	;;
 *netbsd*)
 	xenable_intf_imb=no
 	xenable_intf_lipmi=no
-	xenable_intf_bmc=no
 	xenable_intf_open=no
 	;;
 gnu*)
 	# disable the linux and solaris-specific interfaces on Hurd
 	xenable_intf_imb=no
 	xenable_intf_open=no
+	xenable_intf_usb=yes
 	;;
 esac
 
@@ -163,6 +159,16 @@ AC_CHECK_LIB([crypto], [EVP_aes_128_cbc],
 	    have_crypto=yes; LIBS="$LIBS -lcrypto"
 	fi],
 	[have_crypto=no], [-lcrypto])
+
+AC_CHECK_LIB([crypto], [EVP_sha256],
+	[if test "x$xenable_internal_sha256" != "xyes"; then
+		if test "x$have_crypto" != "xyes"; then
+			LIBS="$LIBS -lcrypto"
+		have_sha256=yes
+		fi
+		AC_DEFINE(HAVE_CRYPTO_SHA256, [1], [Define to 1 if libcrypto supports SHA256.])
+	fi],
+	[], [-lcrypto])
 
 AC_CHECK_LIB([crypto], [MD5_Init],
 	[if test "x$xenable_internal_md5" != "xyes"; then

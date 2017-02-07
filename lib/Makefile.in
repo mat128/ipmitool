@@ -131,7 +131,8 @@ am_libipmitool_la_OBJECTS = helper.lo ipmi_sdr.lo ipmi_sel.lo \
 	ipmi_tsol.lo ipmi_firewall.lo ipmi_kontronoem.lo \
 	ipmi_hpmfwupg.lo ipmi_sdradd.lo ipmi_ekanalyzer.lo \
 	ipmi_gendev.lo ipmi_ime.lo ipmi_delloem.lo ipmi_dcmi.lo \
-	hpm2.lo ipmi_vita.lo ../src/plugins/lan/md5.lo
+	hpm2.lo ipmi_vita.lo ipmi_lanp6.lo ipmi_cfgp.lo \
+	../src/plugins/lan/md5.lo
 libipmitool_la_OBJECTS = $(am_libipmitool_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -362,6 +363,7 @@ libipmitool_la_SOURCES = helper.c ipmi_sdr.c ipmi_sel.c ipmi_sol.c ipmi_pef.c \
 				  ipmi_main.c ipmi_tsol.c ipmi_firewall.c ipmi_kontronoem.c        \
 				  ipmi_hpmfwupg.c ipmi_sdradd.c ipmi_ekanalyzer.c ipmi_gendev.c    \
 				  ipmi_ime.c ipmi_delloem.c ipmi_dcmi.c hpm2.c ipmi_vita.c \
+				  ipmi_lanp6.c ipmi_cfgp.c \
 				  ../src/plugins/lan/md5.c ../src/plugins/lan/md5.h
 
 libipmitool_la_LDFLAGS = -export-dynamic
@@ -436,6 +438,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dimm_spd.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hpm2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_cfgp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_channel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_chassis.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_dcmi.Plo@am__quote@
@@ -451,6 +454,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_isol.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_kontronoem.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_lanp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_lanp6.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_main.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_mc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ipmi_oem.Plo@am__quote@

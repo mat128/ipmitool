@@ -1652,11 +1652,7 @@ ipmi_macinfo_drac_idrac_virtual_mac(struct ipmi_intf* intf,uint8_t NicNum)
 		printf("\niDRAC6 MAC Address ");
 	}
 
-	for (j = 0; j < 5; j++) {
-		printf("%02x:", VirtualMacAddress[j]);
-	}
-	printf("%02x", VirtualMacAddress[j]);
-	printf("\n");
+	printf("%s\n", mac2str(VirtualMacAddress));
 	return 0;
 }
 /*
@@ -1724,11 +1720,7 @@ ipmi_macinfo_drac_idrac_mac(struct ipmi_intf* intf,uint8_t NicNum)
 		printf("\niDRAC6 MAC Address ");
 	}
 
-	for (j = 0; j < 5; j++) {
-		printf("%02x:", iDRAC6MacAddressByte[j]);
-	}
-	printf("%02x", iDRAC6MacAddressByte[j]);
-	printf("\n");
+	printf("%s\n", mac2str(iDRAC6MacAddressByte));
 	return 0;
 }
 /*
@@ -1786,13 +1778,8 @@ ipmi_macinfo_10g(struct ipmi_intf* intf, uint8_t NicNum)
 		for (i = 0; i < Total_No_NICs; i++) {
 			if ((0xff == NicNum) || (i == NicNum)) {
 				printf("\n%d",i);
-				printf("\t\t");
-				for (j = 0 ; j < 5; j++) {
-					printf("%02x:",
-							EmbeddedNICMacAddress_10G.MacAddress[i].MacAddressByte[j]);
-				}
-				printf("%02x",
-						EmbeddedNICMacAddress_10G.MacAddress[i].MacAddressByte[j]);
+				printf("\t\t%s",
+					mac2str(EmbeddedNICMacAddress_10G.MacAddress[i].MacAddressByte));
 			}
 		}
 		printf("\n");
@@ -1889,13 +1876,7 @@ ipmi_macinfo_11g(struct ipmi_intf* intf, uint8_t NicNum)
 				if ((0xff==NicNum)
 						|| (NicNum == EmbeddedNICMacAddress.LOMMacAddress[i].NICNumber)) {
 					printf("\n%d",EmbeddedNICMacAddress.LOMMacAddress[i].NICNumber);
-					printf("\t\t");
-					for (j = 0; j < 5; j++) {
-						printf("%02x:",
-								EmbeddedNICMacAddress.LOMMacAddress[i].MacAddressByte[j]);
-					}
-					printf("%02x",
-							EmbeddedNICMacAddress.LOMMacAddress[i].MacAddressByte[j]);
+					printf("\t\t%s", mac2str(EmbeddedNICMacAddress.LOMMacAddress[i].MacAddressByte));
 
 					if (LOM_ETHERNET_ENABLED
 							== EmbeddedNICMacAddress.LOMMacAddress[i].EthernetStatus) {
@@ -3061,9 +3042,9 @@ ipmi_get_power_headroom_command(struct ipmi_intf * intf,uint8_t unit)
 	if (unit == btuphr) {
 		peakpowerheadroombtuphr = watt_to_btuphr_conversion(powerheadroom.peakheadroom);
 		instantpowerhearoom = watt_to_btuphr_conversion(powerheadroom.instheadroom);
-		printf("System Instantaneous Headroom : %lld BTU/hr\n",
+		printf("System Instantaneous Headroom : %" PRId64 " BTU/hr\n",
 				instantpowerhearoom);
-		printf("System Peak Headroom          : %lld BTU/hr\n",
+		printf("System Peak Headroom          : %" PRId64 " BTU/hr\n",
 				peakpowerheadroombtuphr);
 	} else {
 		printf("System Instantaneous Headroom : %d W\n",
@@ -3452,63 +3433,63 @@ ipmi_print_power_consmpt_history(struct ipmi_intf * intf, int unit)
 	if (unit == btuphr) {
 		printf("Average Power Consumption  ");
 		tempbtuphrconv = watt_to_btuphr_conversion(avgpower.lastminutepower);
-		printf("%4lld BTU/hr     ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr     ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(avgpower.lasthourpower);
-		printf("%4lld BTU/hr   ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr   ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(avgpower.lastdaypower);
-		printf("%4lld BTU/hr  ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr  ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(avgpower.lastweakpower);
-		printf("%4lld BTU/hr\n", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr\n", tempbtuphrconv);
 
 		printf("Max Power Consumption      ");
 		tempbtuphrconv = watt_to_btuphr_conversion(stPeakpower.lastminutepower);
-		printf("%4lld BTU/hr     ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr     ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stPeakpower.lasthourpower);
-		printf("%4lld BTU/hr   ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr   ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stPeakpower.lastdaypower);
-		printf("%4lld BTU/hr  ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr  ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stPeakpower.lastweakpower);
-		printf("%4lld BTU/hr\n", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr\n", tempbtuphrconv);
 
 		printf("Min Power Consumption      ");
 		tempbtuphrconv = watt_to_btuphr_conversion(stMinpower.lastminutepower);
-		printf("%4lld BTU/hr     ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr     ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stMinpower.lasthourpower);
-		printf("%4lld BTU/hr   ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr   ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stMinpower.lastdaypower);
-		printf("%4lld BTU/hr  ", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr  ", tempbtuphrconv);
 		tempbtuphrconv = watt_to_btuphr_conversion(stMinpower.lastweakpower);
-		printf("%4lld BTU/hr\n\n", tempbtuphrconv);
+		printf("%4" PRId64 " BTU/hr\n\n", tempbtuphrconv);
 	} else {
 		printf("Average Power Consumption  ");
 		tempbtuphrconv = (avgpower.lastminutepower);
-		printf("%4lld W          ", tempbtuphrconv);
+		printf("%4" PRId64 " W          ", tempbtuphrconv);
 		tempbtuphrconv = (avgpower.lasthourpower);
-		printf("%4lld W        ", tempbtuphrconv);
+		printf("%4" PRId64 " W        ", tempbtuphrconv);
 		tempbtuphrconv = (avgpower.lastdaypower);
-		printf("%4lld W       ", tempbtuphrconv);
+		printf("%4" PRId64 " W       ", tempbtuphrconv);
 		tempbtuphrconv=(avgpower.lastweakpower);
-		printf("%4lld W   \n", tempbtuphrconv);
+		printf("%4" PRId64 " W   \n", tempbtuphrconv);
 
 		printf("Max Power Consumption      ");
 		tempbtuphrconv = (stPeakpower.lastminutepower);
-		printf("%4lld W          ", tempbtuphrconv);
+		printf("%4" PRId64 " W          ", tempbtuphrconv);
 		tempbtuphrconv = (stPeakpower.lasthourpower);
-		printf("%4lld W        ", tempbtuphrconv);
+		printf("%4" PRId64 " W        ", tempbtuphrconv);
 		tempbtuphrconv = (stPeakpower.lastdaypower);
-		printf("%4lld W       ", tempbtuphrconv);
+		printf("%4" PRId64 " W       ", tempbtuphrconv);
 		tempbtuphrconv = (stPeakpower.lastweakpower);
-		printf("%4lld W   \n", tempbtuphrconv);
+		printf("%4" PRId64 " W   \n", tempbtuphrconv);
 
 		printf("Min Power Consumption      ");
 		tempbtuphrconv = (stMinpower.lastminutepower);
-		printf("%4lld W          ", tempbtuphrconv);
+		printf("%4" PRId64 " W          ", tempbtuphrconv);
 		tempbtuphrconv = (stMinpower.lasthourpower);
-		printf("%4lld W        ", tempbtuphrconv);
+		printf("%4" PRId64 " W        ", tempbtuphrconv);
 		tempbtuphrconv = (stMinpower.lastdaypower);
-		printf("%4lld W       ", tempbtuphrconv);
+		printf("%4" PRId64 " W       ", tempbtuphrconv);
 		tempbtuphrconv = (stMinpower.lastweakpower);
-		printf("%4lld W   \n\n", tempbtuphrconv);
+		printf("%4" PRId64 " W   \n\n", tempbtuphrconv);
 	}
 
 	lastminutepeakpower = stPeakpower.lastminutepowertime;
@@ -3612,11 +3593,11 @@ ipmi_print_power_cap(struct ipmi_intf * intf,uint8_t unit)
 	if (rc == 0) {
 		if (unit == btuphr) {
 			tempbtuphrconv = watt_to_btuphr_conversion(ipmipowercap.MaximumPowerConsmp);
-			printf("Maximum power: %lld  BTU/hr\n", tempbtuphrconv);
+			printf("Maximum power: %" PRId64 "  BTU/hr\n", tempbtuphrconv);
 			tempbtuphrconv = watt_to_btuphr_conversion(ipmipowercap.MinimumPowerConsmp);
-			printf("Minimum power: %lld  BTU/hr\n", tempbtuphrconv);
+			printf("Minimum power: %" PRId64 "  BTU/hr\n", tempbtuphrconv);
 			tempbtuphrconv = watt_to_btuphr_conversion(ipmipowercap.PowerCap);
-			printf("Power cap    : %lld  BTU/hr\n", tempbtuphrconv);
+			printf("Power cap    : %" PRId64 "  BTU/hr\n", tempbtuphrconv);
 		} else {
 			printf("Maximum power: %d Watt\n", ipmipowercap.MaximumPowerConsmp);
 			printf("Minimum power: %d Watt\n", ipmipowercap.MinimumPowerConsmp);

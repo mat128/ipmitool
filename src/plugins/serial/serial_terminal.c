@@ -33,7 +33,9 @@
 
 /* Serial Interface, Terminal Mode plugin. */
 
+#if defined HAVE_ALLOCA_H
 #include <alloca.h>
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -77,7 +79,7 @@ struct ipmb_msg_hdr {
 	unsigned char rqSA;
 	unsigned char rqSeq;	/* RQ SEQ | RQ LUN */
 	unsigned char cmd;
-	unsigned char data[0];
+	unsigned char data[];
 };
 
 /*
@@ -99,7 +101,7 @@ struct ipmi_get_message_rp {
 	unsigned char rsSA;
 	unsigned char rqSeq;
 	unsigned char cmd;
-	unsigned char data[0];
+	unsigned char data[];
 };
 
 /*
@@ -371,8 +373,9 @@ recv_response(struct ipmi_intf * intf, unsigned char *data, int len)
 		}
 		p += rv;
 		resp_len += rv;
-		if (*(p - 2) == ']' && (*(p - 1) == '\n' || *(p - 1) == '\r')) {
-			*p = 0;
+		if (resp_len >= 2 && *(p - 2) == ']'
+			&& (*(p - 1) == '\n' || *(p - 1) == '\r')) {
+			*(p - 1) = 0; /* overwrite EOL */
 			break;
 		}
 	}

@@ -33,7 +33,9 @@
 
 /* Serial Interface, Basic Mode plugin. */
 
+#if defined HAVE_ALLOCA_H
 #include <alloca.h>
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
@@ -79,7 +81,7 @@ struct ipmb_msg_hdr {
 	unsigned char rqSA;
 	unsigned char rqSeq;	/* RQ SEQ | RQ LUN */
 	unsigned char cmd;
-	unsigned char data[0];
+	unsigned char data[];
 };
 
 /*
@@ -101,7 +103,7 @@ struct ipmi_get_message_rp {
 	unsigned char rsSA;
 	unsigned char rqSeq;
 	unsigned char cmd;
-	unsigned char data[0];
+	unsigned char data[];
 };
 
 /*
@@ -128,7 +130,7 @@ struct  serial_bm_parse_ctx{
  *	Receiving context
  */
 struct serial_bm_recv_ctx {
-	char buffer[SERIAL_BM_MAX_BUFFER_SIZE];
+	uint8_t buffer[SERIAL_BM_MAX_BUFFER_SIZE];
 	size_t buffer_size;
 	size_t max_buffer_size;
 };

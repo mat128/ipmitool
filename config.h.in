@@ -27,6 +27,9 @@
 /* Define to 1 if libcrypto supports MD5. */
 #undef HAVE_CRYPTO_MD5
 
+/* Define to 1 if libcrypto supports SHA256. */
+#undef HAVE_CRYPTO_SHA256
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

@@ -51,6 +51,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <assert.h>
+#include <ctype.h>
 
 #if HAVE_CONFIG_H
 # include <config.h>
@@ -79,22 +80,139 @@ uint16_t buf2short(uint8_t * buf)
 	return (uint16_t)(buf[1] << 8 | buf[0]);
 }
 
-const char * buf2str(uint8_t * buf, int len)
+/* buf2str_extended - convert sequence of bytes to hexadecimal string with
+ * optional separator
+ *
+ * @param buf - data to convert
+ * @param len - size of data
+ * @param sep - optional separator (can be NULL)
+ *
+ * @returns     buf representation in hex, possibly truncated to fit
+ *              allocated static memory
+ */
+const char *
+buf2str_extended(const uint8_t *buf, int len, const char *sep)
 {
-	static char str[2049];
+	static char str[BUF2STR_MAXIMUM_OUTPUT_SIZE];
+	char *cur;
 	int i;
+	int sz;
+	int left;
+	int sep_len;
 
-	if (len <= 0 || len > 1024)
-		return NULL;
-
-	memset(str, 0, 2049);
-
-	for (i=0; i<len; i++)
-		sprintf(str+i+i, "%2.2x", buf[i]);
-
-	str[len*2] = '\0';
+	if (buf == NULL) {
+		snprintf(str, sizeof(str), "<NULL>");
+		return (const char *)str;
+	}
+	cur = str;
+	left = sizeof(str);
+	if (sep) {
+		sep_len = strlen(sep);
+	} else {
+		sep_len = 0;
+	}
+	for (i = 0; i < len; i++) {
+		/* may return more than 2, depending on locale */
+		sz = snprintf(cur, left, "%2.2x", buf[i]);
+		if (sz >= left) {
+			/* buffer overflow, truncate */
+			break;
+		}
+		cur += sz;
+		left -= sz;
+		/* do not write separator after last byte */
+		if (sep && i != (len - 1)) {
+			if (sep_len >= left) {
+				break;
+			}
+			strncpy(cur, sep, left - sz);
+			cur += sep_len;
+			left -= sep_len;
+		}
+	}
+	*cur = '\0';
 
 	return (const char *)str;
+}
+
+const char *
+buf2str(const uint8_t *buf, int len)
+{
+	return buf2str_extended(buf, len, NULL);
+}
+
+/* ipmi_parse_hex - convert hexadecimal numbers to ascii string
+ *                  Input string must be composed of two-characer
+ *                  hexadecimal numbers.
+ *                  There is no separator between the numbers. Each number
+ *                  results in one byte of the converted string.
+ *
+ *                  Example: ipmi_parse_hex("50415353574F5244")
+ *                  returns 'PASSWORD'
+ *
+ * @param str:  input string. It must contain only even number
+ *              of '0'-'9','a'-'f' and 'A-F' characters.
+ * @param out: pointer to output data
+ * @param size: size of the output buffer
+ * @returns 0 for empty input string
+ *         -1 for string with odd length
+ *         -2 if out is NULL
+ *         -3 if there is non-hexadecimal char in string
+ *         >0 length of resulting binary data even if it is > size
+ */
+int
+ipmi_parse_hex(const char *str, uint8_t *out, int size)
+{
+	const char *p;
+	uint8_t *q;
+	uint8_t d = 0;
+	uint8_t b = 0;
+	int shift = 4;
+	int len;
+
+	len = strlen(str);
+	if (len == 0) {
+		return 0;
+	}
+
+	if (len % 2 != 0) {
+		return -1;
+	}
+
+	len /= 2; /* out bytes */
+	if (out == NULL) {
+		return -2;
+	}
+
+	for (p = str, q = out; *p; p++) {
+		if (!isxdigit(*p)) {
+			return -3;
+		}
+
+		if (*p < 'A') {
+			/* it must be 0-9 */
+			d = *p - '0';
+		} else {
+			/* it's A-F or a-f */
+			/* convert to lowercase and to 10-15 */
+			d = (*p | 0x20) - 'a' + 10;
+		}
+
+		if (q < (out + size)) {
+			/* there is space, store */
+			b += d << shift;
+			if (shift) {
+				shift = 0;
+			} else {
+				shift = 4;
+				*q = b;
+				b = 0;
+				q++;
+			}
+		}
+	}
+
+	return len;
 }
 
 void printbuf(const uint8_t * buf, int len, const char * desc)
@@ -114,6 +232,53 @@ void printbuf(const uint8_t * buf, int len, const char * desc)
 		fprintf(stderr, " %2.2x", buf[i]);
 	}
 	fprintf(stderr, "\n");
+}
+
+/* str2mac - parse-out MAC address from given string and store it
+ * into buffer.
+ *
+ * @arg: string to be parsed.
+ * @buf: buffer of 6 to hold parsed MAC address.
+ *
+ * returns zero on success, (-1) on error and error message is printed-out.
+ */
+int
+str2mac(const char *arg, uint8_t *buf)
+{
+	unsigned int m1 = 0;
+	unsigned int m2 = 0;
+	unsigned int m3 = 0;
+	unsigned int m4 = 0;
+	unsigned int m5 = 0;
+	unsigned int m6 = 0;
+	if (sscanf(arg, "%02x:%02x:%02x:%02x:%02x:%02x",
+		   &m1, &m2, &m3, &m4, &m5, &m6) != 6) {
+		lprintf(LOG_ERR, "Invalid MAC address: %s", arg);
+		return -1;
+	}
+	if (m1 > UINT8_MAX || m2 > UINT8_MAX
+			|| m3 > UINT8_MAX || m4 > UINT8_MAX
+			|| m5 > UINT8_MAX || m6 > UINT8_MAX) {
+		lprintf(LOG_ERR, "Invalid MAC address: %s", arg);
+		return -1;
+	}
+	buf[0] = (uint8_t)m1;
+	buf[1] = (uint8_t)m2;
+	buf[2] = (uint8_t)m3;
+	buf[3] = (uint8_t)m4;
+	buf[4] = (uint8_t)m5;
+	buf[5] = (uint8_t)m6;
+	return 0;
+}
+
+/* mac2str   -- return MAC address as a string
+ *
+ * @buf: buffer of 6 to hold parsed MAC address.
+ */
+const char *
+mac2str(const uint8_t *buf)
+{
+	return buf2str_extended(buf, 6, ":");
 }
 
 const char * val2str(uint16_t val, const struct valstr *vs)

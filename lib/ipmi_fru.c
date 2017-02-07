@@ -50,6 +50,13 @@
 
 #define FRU_MULTIREC_CHUNK_SIZE     (255 + sizeof(struct fru_multirec_header))
 
+static const char *section_id[4] = {
+	"Internal Use Section",
+	"Chassis Section",
+	"Board Section",
+	"Product Section"
+};
+
 /* From lib/dimm_spd.c: */
 int
 ipmi_spd_print_fru(struct ipmi_intf * intf, uint8_t id);
@@ -677,9 +684,9 @@ read_fru_area(struct ipmi_intf * intf, struct fru_info *fru, uint8_t id,
 			break;
 		}
 		if (rsp->ccode > 0) {
-			/* if we get C8h or CAh completion code then we requested too
+			/* if we get C7h or C8h or CAh return code then we requested too
 			* many bytes at once so try again with smaller size */
-			if ((rsp->ccode == 0xc8 || rsp->ccode == 0xca)
+			if ((rsp->ccode == 0xc7 || rsp->ccode == 0xc8 || rsp->ccode == 0xca)
 					&& fru->max_read_size > 8) {
 				if (fru->max_read_size > 32) {
 					/* subtract read length more aggressively */
@@ -2281,8 +2288,7 @@ static void ipmi_fru_picmg_ext_print(uint8_t * fru_data, int off, int length)
 				printf("      Link Type Extension:  0x%02x - ",
 						d->ext);
 				if (d->type == FRU_PICMGEXT_LINK_TYPE_BASE) {
-					switch (d->ext)
-					{
+					switch (d->ext) {
 						case 0:
 							printf("10/100/1000BASE-T Link (four-pair)\n");
 							break;
@@ -2290,76 +2296,93 @@ static void ipmi_fru_picmg_ext_print(uint8_t * fru_data, int off, int length)
 							printf("ShMC Cross-connect (two-pair)\n");
 							break;
 						default:
-							printf("Unknwon\n");
+							printf("Unknown\n");
 							break;
 					}
 				} else if (d->type == FRU_PICMGEXT_LINK_TYPE_FABRIC_ETHERNET) {
-					switch (d->ext)
-					{
+					switch (d->ext) {
 						case 0:
-							printf("Fixed 1000Base-BX\n");
+							printf("1000Base-BX\n");
 							break;
 						case 1:
-							printf("Fixed 10GBASE-BX4 [XAUI]\n");
+							printf("10GBase-BX4 [XAUI]\n");
 							break;
 						case 2:
 							printf("FC-PI\n");
 							break;
+						case 3:
+							printf("1000Base-KX\n");
+							break;
+						case 4:
+							printf("10GBase-KX4\n");
+							break;
 						default:
-							printf("Unknwon\n");
+							printf("Unknown\n");
+							break;
+					}
+				} else if (d->type == FRU_PICMGEXT_LINK_TYPE_FABRIC_ETHERNET_10GBD) {
+					switch (d->ext) {
+						case 0:
+							printf("10GBase-KR\n");
+							break;
+						case 1:
+							printf("40GBase-KR4\n");
+							break;
+						default:
+							printf("Unknown\n");
 							break;
 					}
 				} else if (d->type == FRU_PICMGEXT_LINK_TYPE_FABRIC_INFINIBAND) {
-					printf("Unknwon\n");
+					printf("Unknown\n");
 				} else if (d->type == FRU_PICMGEXT_LINK_TYPE_FABRIC_STAR) {
-					printf("Unknwon\n");
+					printf("Unknown\n");
 				} else if (d->type == FRU_PICMGEXT_LINK_TYPE_PCIE) {
-					printf("Unknwon\n");
+					printf("Unknown\n");
 				} else {
-					printf("Unknwon\n");
+					printf("Unknown\n");
 				}
 
 				printf("      Link Type:            0x%02x - ",
 						d->type);
-				if (d->type == 0 || d->type == 0xff) {
-					printf("Reserved\n");
-				}
-				else if (d->type >= 0x06 && d->type <= 0xef) {
-					printf("Reserved\n");
-				}
-				else if (d->type >= 0xf0 && d->type <= 0xfe) {
-					printf("OEM GUID Definition\n");
-				}
-				else {
-					switch (d->type)
-					{
-						case FRU_PICMGEXT_LINK_TYPE_BASE:
-							printf("PICMG 3.0 Base Interface 10/100/1000\n");
-							break;
-						case FRU_PICMGEXT_LINK_TYPE_FABRIC_ETHERNET:
-							printf("PICMG 3.1 Ethernet Fabric Interface\n");
-							break;
-						case FRU_PICMGEXT_LINK_TYPE_FABRIC_INFINIBAND:
-							printf("PICMG 3.2 Infiniband Fabric Interface\n");
-							break;
-						case FRU_PICMGEXT_LINK_TYPE_FABRIC_STAR:
-							printf("PICMG 3.3 Star Fabric Interface\n");
-							break;
-						case  FRU_PICMGEXT_LINK_TYPE_PCIE:
-							printf("PICMG 3.4 PCI Express Fabric Interface\n");
-							break;
-						default:
+				switch (d->type) {
+					case FRU_PICMGEXT_LINK_TYPE_BASE:
+						printf("PICMG 3.0 Base Interface 10/100/1000\n");
+						break;
+					case FRU_PICMGEXT_LINK_TYPE_FABRIC_ETHERNET:
+						printf("PICMG 3.1 Ethernet Fabric Interface\n");
+						printf("                                   Base signaling Link Class\n");
+						break;
+					case FRU_PICMGEXT_LINK_TYPE_FABRIC_INFINIBAND:
+						printf("PICMG 3.2 Infiniband Fabric Interface\n");
+						break;
+					case FRU_PICMGEXT_LINK_TYPE_FABRIC_STAR:
+						printf("PICMG 3.3 Star Fabric Interface\n");
+						break;
+					case  FRU_PICMGEXT_LINK_TYPE_PCIE:
+						printf("PICMG 3.4 PCI Express Fabric Interface\n");
+						break;
+					case FRU_PICMGEXT_LINK_TYPE_FABRIC_ETHERNET_10GBD:
+						printf("PICMG 3.1 Ethernet Fabric Interface\n");
+						printf("                                   10.3125Gbd signaling Link Class\n");
+						break;
+					default:
+						if (d->type == 0 || d->type == 0xff) {
+							printf("Reserved\n");
+						} else if (d->type >= 0x06 && d->type <= 0xef) {
+							printf("Reserved\n");
+						} else if (d->type >= 0xf0 && d->type <= 0xfe) {
+							printf("OEM GUID Definition\n");
+						} else {
 							printf("Invalid\n");
-							break;
-					}
+						}
+						break;
 				}
 				printf("      Link Designator: \n");
 				printf("        Port Flag:            0x%02x\n",
 						d->desig_port);
 				printf("        Interface:            0x%02x - ",
 						d->desig_if);
-				switch (d->desig_if)
-				{
+				switch (d->desig_if) {
 					case FRU_PICMGEXT_DESIGN_IF_BASE:
 						printf("Base Interface\n");
 						break;

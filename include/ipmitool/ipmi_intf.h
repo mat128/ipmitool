@@ -59,7 +59,7 @@ enum LANPLUS_SESSION_STATE {
 
 
 #define IPMI_AUTHCODE_BUFFER_SIZE 20
-#define IPMI_SIK_BUFFER_SIZE      20
+#define IPMI_SIK_BUFFER_SIZE      IPMI_MAX_MD_SIZE
 #define IPMI_KG_BUFFER_SIZE       21 /* key plus null byte */
 
 struct ipmi_session_params {
@@ -131,10 +131,13 @@ struct ipmi_session {
 		uint8_t requested_role;   /* As sent in the RAKP 1 message */
 		uint8_t rakp2_return_code;
 
-		uint8_t sik[IPMI_SIK_BUFFER_SIZE]; /* Session integrity key */
-		uint8_t kg[IPMI_KG_BUFFER_SIZE];   /* BMC key */
-		uint8_t k1[20];   /* Used for Integrity checking? */
-		uint8_t k2[20];   /* First 16 bytes used for AES  */
+		uint8_t  sik[IPMI_SIK_BUFFER_SIZE]; /* Session integrity key */
+		uint8_t sik_len;                   /* Session Integrity key length */
+		uint8_t  kg[IPMI_KG_BUFFER_SIZE];   /* BMC key */
+		uint8_t  k1[IPMI_MAX_MD_SIZE];      /* Used for Integrity checking? */
+		uint8_t k1_len;                    /* K1 key length */
+		uint8_t  k2[IPMI_MAX_MD_SIZE];      /* First 16 bytes used for AES  */
+		uint8_t k2_len;                    /* K2 key length */
 	} v2_data;
 
 
@@ -217,7 +220,7 @@ void ipmi_intf_session_set_privlvl(struct ipmi_intf * intf, uint8_t privlvl);
 void ipmi_intf_session_set_lookupbit(struct ipmi_intf * intf, uint8_t lookupbit);
 void ipmi_intf_session_set_cipher_suite_id(struct ipmi_intf * intf, uint8_t cipher_suite_id);
 void ipmi_intf_session_set_sol_escape_char(struct ipmi_intf * intf, char sol_escape_char);
-void ipmi_intf_session_set_kgkey(struct ipmi_intf * intf, char * kgkey);
+void ipmi_intf_session_set_kgkey(struct ipmi_intf *intf, const uint8_t *kgkey);
 void ipmi_intf_session_set_port(struct ipmi_intf * intf, int port);
 void ipmi_intf_session_set_authtype(struct ipmi_intf * intf, uint8_t authtype);
 void ipmi_intf_session_set_timeout(struct ipmi_intf * intf, uint32_t timeout);
